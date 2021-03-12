@@ -394,7 +394,7 @@ void draw(){
   }
   
   
-if(arrayindex>5) println(arrayindex,"sendornot=",sendornot[arrayindex]);
+//if(arrayindex>5) println(arrayindex,"sendornot=",sendornot[arrayindex]);
 //println(sendtime,"sendornot=",sendornot);  
 if(sendornot[arrayindex]){
   sendtime=0;

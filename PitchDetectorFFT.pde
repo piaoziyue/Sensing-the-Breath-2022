@@ -48,7 +48,6 @@ class PitchDetectorFFT implements AudioListener {
   synchronized void samples(float[] samp) {
     float before=millis();
     FFT(samp);
-    println("fft=",millis()-before);
   }
   
   synchronized void samples(float[] sampL, float[] sampR) {
@@ -125,7 +124,8 @@ class PitchDetectorFFT implements AudioListener {
       for(int i=arrayindex-5;i<arrayindex;i++){
         if(breath[i]==true) breathnum++;
       }
-      if(breathnum/5.0>0.4 && (f <150||f>1000) && ave_amplitude>0.2) {
+      println("ave_amplitude=",ave_amplitude," breath=",breathnum/5.0);
+      if(breathnum/5.0>0.36 && (f <150||f>1000) && ave_amplitude>5.5) {
         breathornot=true;
         for(int i=arrayindex-5;i<arrayindex;i++){
           breath[i]=true;
