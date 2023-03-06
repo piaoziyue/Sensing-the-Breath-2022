@@ -1,5 +1,4 @@
 
-
 Ring circle;
 Note note;
 //.processing.core.PShape button_light;
@@ -61,7 +60,7 @@ int piece1_notenum[]={21,60,64,65, 67,67, 69,71,72,69, 67, 67,72,71,69, 67,64, 6
 
 int barWidth = 20;
 int lastBar = -1;
-int page=1;
+int page=0;
 
 float []pitchline = new float[10000];
 float []rhythm = new float[10000];
@@ -149,6 +148,37 @@ int sendtime=0;
 boolean[] sendornot;
 int breathlong=0;
 
+Button pretrain, exercise, report;
+Button p1,e1,r1;
+import processing.serial.*;
+Serial myPort;  // Create object from Serial class
+String myString;
+float myVal;
+
+float[] abNorBreath;
+float[] wlNorBreath;
+float[] wrNorBreath;
+float[] llNorBreath;
+float[] lrNorBreath;
+float[] waNorBreath;
+float[] luNorBreath;
+
+int[] abMaxBreath;
+int[] wlMaxBreath;
+int[] wrMaxBreath;
+int[] llMaxBreath;
+int[] lrMaxBreath;
+
+int[] abSingBreath;
+int[] wlSingBreath;
+int[] wrSingBreath;
+int[] llSingBreath;
+int[] lrSingBreath;
+
+int indexNorPage=0;
+int indexMaxPage=0;
+int indexSingPage=0;
+
 void setup(){
   size(1060, 800);
   noStroke();
@@ -161,6 +191,12 @@ void setup(){
   note = new Note();
   circle.start(80+2*w,height/2);
   writer=createWriter("data.txt");
+  
+  //port
+  String portName = Serial.list()[10];
+  myPort = new Serial(this, portName, 9600); 
+  myPort.clear();  // function from serial library that throws out the first reading, in case we started reading in the middle of a string from Arduino
+  myString = myPort.readStringUntil(10);
   
   //notes
   huafeihua = loadTable("notes_huafeihua.csv", "header");
@@ -186,7 +222,7 @@ void setup(){
     if(id==1) songlong = row.getInt("songlong");
     senl = row.getInt("sentencelong");
   
-    eachnote[id] = new EachNote(id,nl,np,nextnp,glideon,breathon,npage,nrow,senl);
+    eachnote[id] = new EachNote(id,nl,np,nextnp,glideon,breathon,npage,nrow,senl);   
     
   }
   
@@ -196,6 +232,7 @@ void setup(){
   }
   
   tempo_font = loadFont("AlBayan-Bold-18.vlw");
+  //lyrics_font = loadFont("FuturaLT-Light-48.vlw");
   
   //pitch
   minim = new Minim(this);
@@ -206,6 +243,26 @@ void setup(){
   level = new float[width*4];
   arrayinterval = new int[width];
   sendornot = new boolean[width*4];
+
+  abNorBreath = new float[width*2];
+  wlNorBreath = new float[width*2];
+  wrNorBreath = new float[width*2];
+  llNorBreath = new float[width*2];
+  lrNorBreath = new float[width*2];
+  waNorBreath = new float[width*2];
+  luNorBreath = new float[width*2];
+
+  abMaxBreath = new int[width*2];
+  wlMaxBreath = new int[width*2];
+  wrMaxBreath = new int[width*2];
+  llMaxBreath = new int[width*2];
+  lrMaxBreath = new int[width*2];
+
+  abSingBreath = new int[width*4];
+  wlSingBreath = new int[width*4];
+  wrSingBreath = new int[width*4];
+  llSingBreath = new int[width*4];
+  lrSingBreath = new int[width*4];
   
   AS = new AudioSource(minim);
   // Comment the previous block and uncomment the next line for microphone input
@@ -268,327 +325,52 @@ void setup(){
   F = new PVector();  
   G = new PVector();
   H = new PVector(); 
+
+  pretrain= new Button("Normal", width/4, 2*height/3,"r");
+  exercise = new Button("Maxmium", width/2, 2*height/3,"r");
+  report = new Button("Singing", 3*width/4, 2*height/3,"r");
+  
+  p1= new Button("P", 100, height/2,"c");
+  e1 = new Button("E", 150, height/2,"c");
+  r1 = new Button("R", 200, height/2,"c");
 }
 
 void draw(){
   background(51);
   //shape(button_light,width/2-10,20,30,30); 
-
-  section=int(8*(timepoint-restarttime-delta)/songlong);
-  int songlongpiece=songlong/32;
-  
-  if(breathornot==true) breathtime[arrayindex]=1;
-  else breathtime[arrayindex]=0;
-
-  if(song.length()-song.position()<=110 && currentBeat==1) {
-    startornot=true;
-    stopornot=true;//when the start audio stoped
-  }
-  if(stopornot==false) restarttime=millis();
-
-  timepoint=millis();
-  timerate=frameRate;
-  if(startornot==true){
-  if(startorgo==true && xline==80 & upordown==true && firsttrigger==true) {    
-    starttime=millis();
-    println("start!");
-    clearArrayinterval();
-    if(currentBeat==1) {high.trigger();firsttrigger=false;}
-  }
-   
-   xline=(16*w*(timepoint-restarttime-delta)/songlong)%960+80;
-   if(xline-prexline>0) movespeed=xline-prexline;
-   prexline=xline;
-   
-   if((xline-startx)%(w/2)<pre){
-    
-      if(currentBeat % beatsPerBar == 0) {
-        high.trigger();}
-      else {
-        low.trigger();}      
-        currentBeat +=1;    
-        pre=0;
-      }    
-   if(startornot==true) pre=(xline-startx)%(w/2);   
-   tickSize = (fRate * 60)/tempo; 
-  }
-  
-  //judge if the timepoint is in the upper screen of the downward screen
-  //println(upordown," ",(timepoint-restarttime-delta)%(songlong/2)," ",pretime);
-  if( (timepoint-restarttime-delta)%(songlong/2)<pretime && startornot==true){
-    if(upordown==true) 
-      upordown=false;
-    else {
-      upordown=true;
-      arrayindex=0;
-    }
-    pretime=0;
-  }
-  
-  if(startornot==true) pretime=(timepoint-restarttime-delta)%(songlong/2);
-  //draw the breath circle in the middle of the screen
- 
-  if(startornot==true){     
-     if(circle.on==true) circle.grow();
-     else if(circle.on==false) circle.contract(movespeed);  
-
-     if(xline>=(startx+7*w/2) && xline<=(startx+31*w/8)) circle.on=true;
-     if(xline>=(startx+15*w/2) && xline<=(startx+63*w/8)) circle.on=true;
-  }
-     
-  circle.display();  
-  getf();  
-  //println("breathornot=",breathornot);
-  circleport=circle.diameter/circle.max; 
-     
-  writer.println(f);
-  if(startornot){
-    writer.flush();
-    writer.close();
-  }
-  
-  //draw rainbow notes and bar lines
-  draw_noteline();
-  
-  //draw pitch lines
-    
-  inputtime=millis();
-  
-  int delaymax=11;
-  //if(note.breathinorout==true) println("breath in");
-  //else println("breath out");
-   
-  for(int i=0;i<arrayindex-1;i++){                  
-     strokeWeight(3);
-     stroke(255,255,255,level[i]+40);
-
-     if(inputpitchX[i+1]>inputpitchX[i])
-       //line(inputpitchX[i],inputpitchY[i],inputpitchX[i+1],inputpitchY[i+1]);
-
-      for(int j=1;j<=notecount;j++){
-       if(inputpitchX[i]>=eachnote[j].x && inputpitchX[i]<=eachnote[j].x+eachnote[j].notelong*w/2 && inputpitchY[i]>=eachnote[j].y && inputpitchY[i]<=eachnote[j].y+eachnote[j].r)
-       {                           
-           eachnote[j].setNoteColor();
-           colortime[i]=eachnote[j].c;
-           stroke(colortime[i],level[i]);      
-           line(inputpitchX[i],eachnote[j].y,inputpitchX[i],eachnote[j].y+eachnote[j].r);            
-       }  
-           
-       if(eachnote[j].nextbreathornot==1 &&sendtime==0 && xline>=eachnote[j].startbreathx && xline<=eachnote[j].xmax && ((inputpitchY[i]<=height/2 && eachnote[j].y<=height/2)||(inputpitchY[i]>height/2 && eachnote[j].y>height/2))) 
-       {              
-         sendornot[i]=true;  
-         sendtime+=1;
-       } 
-       else sendornot[i]=false;
-             
-       if(i>5 && inputpitchX[i]>=eachnote[j].x && inputpitchX[i]<=eachnote[j].xmax ) 
-       {           
-           colortime[i]=color(10);           
-           noStroke();
-           fill(colortime[i],200);        
-           
-           if(breathtime[i]==1  && ((inputpitchY[i]<=height/2 && eachnote[j].y<=height/2)||(inputpitchY[i]>height/2 && eachnote[j].y>height/2))){
-             rect(inputpitchX[i]-8,eachnote[j].y,5,eachnote[j].r);}  
-       }   
-     }    
-  }
-  
-  
-//if(arrayindex>5) println(arrayindex,"sendornot=",sendornot[arrayindex]);
-//println(sendtime,"sendornot=",sendornot);  
-if(sendornot[arrayindex]){
-  sendtime=0;
-}
-
-
-  int delaytime;
-  delaytime=millis()-inputtime;
-  if(delaytime<delaymax) delay(delaymax-delaytime);
-  
-  
-    if(startornot==true)
-  {
-    inputpitchX[arrayindex]=xline;
-    level[arrayindex]=AS.GetLevel()*1600+40;
-      if( level[arrayindex]>255) level[arrayindex]=255;
-    if(upordown==true) {
-      inputpitchY[arrayindex]=height/2-f/2+10;    
-      if(arrayindex>=1 && (inputpitchY[arrayindex]<=0||inputpitchY[arrayindex+1]-inputpitchY[arrayindex]>=80)) inputpitchY[arrayindex]=inputpitchY[arrayindex-1];
-      if(f<100) inputpitchY[arrayindex]=height/2;      
-    }
-    
-    else {
-    inputpitchY[arrayindex]=height-f/2-20;
-    if(arrayindex>=1 && (inputpitchY[arrayindex]<=height/2||inputpitchY[arrayindex+1]-inputpitchY[arrayindex]>=80)) inputpitchY[arrayindex]=inputpitchY[arrayindex-1];
-    if(f<100) inputpitchY[arrayindex]=height-20;
-    }    
-  }
-  
-  strokeWeight(4);
-  stroke(240,200);
-  if(breathornot==false)line(inputpitchX[arrayindex]-5,inputpitchY[arrayindex],inputpitchX[arrayindex],inputpitchY[arrayindex]);
-  
-  //println(arrayindex," ",inputpitchX[arrayindex]," ",inputpitchY[arrayindex]);
-  //if(arrayindex>2*(width-100)/movespeed) arrayindex-=2*(width-100)/movespeed;
-  if(startornot==true) {
-    arrayindex+=1;
-    
-    if(section>=0)arrayinterval[section]+=1;
-  }
-  if (timepoint%(width)<=5) 
-  changepoint=xline;
-  
-  //draw the time stick
-  draw_timestick(xline);
-  
-  //show the tempo button
-  tempobar.update();
-  tempobar.display(); 
-  
-  if(tempobar.over==true && mousePressed==true){
-    timerevise=timepoint;
-    circle.on=true;
-    score=0;
-    circle.diameter=50;
-    startorgo=true;
-    upordown=true;
-  }
-  
-  textFont(tempo_font,15);
-  fill(155,200);
-  textAlign(CENTER, CENTER);
-  text("Tempo", 3*width/4+65, height/2-10); 
-  
-  //show the left, right and revise buttons
-  updateL(leftX,leftY);
-  updateR(rightX,rightY);
-  updatePl(playX,playY);
- 
-  if (leftOver) {
-     tint(0,200);
-  } else {
-      tint(155,200);}  
-  left.resize(40,40);
-  image(left,leftX,leftY);
-  tint(155,200);
-  
-  if (rightOver) {
-     tint(0,200);
-  } else {
-      tint(155,200);} 
-  right.resize(40,40);
-  image(right,rightX,rightY);
-  tint(155,200);
-  
-  if (playOver) {
-     tint(0,200);
-  } else {
-      tint(155,200);} 
-  if(pauseornot==true){
-    pause.resize(40,40);
-    image(pause,playX,playY);
-    tint(155,200);
-  }
-  else{    
-    play.resize(40,40);
-    image(play,playX,playY);
-    tint(155,200);
-  }
-  
-  
-  /*if (reviseOver) {
-     tint(0,200);
-  } else {
-      tint(155,200);} 
-  revise.resize(30,30);
-  image(revise,reviseX,reviseY);
-  tint(155,200);*/
-  
-  start1.resize(30,30);
-  image(start1,startX,startY);
-  textFont(tempo_font,15);
-  fill(155,200);
-  textAlign(CENTER, CENTER);
-  text("Start", startX-30, startY); 
-  float dex=0.0083;//dex=2*movespeed/w
-  //set the two bezier lines
-  curve1 = new BezierCurve(A, B, C, D);
-  curve2 = new BezierCurve(E, F, G, H);
-
-  lefthand.resize(40,40);
-  tint(155,100);
-  righthand.resize(40,40);
-  tint(155,100);
-  int xplus=-10;
-  int yplus=40;
-  
-  int curvexmax=260;
-  int curvexmid=200;
-  int curvexmin=150;
-  
-  int curveymax=50;
-  int curveymin=-100;
-
-  A.set( width/2-curvexmax+xplus, height/2+yplus);//
-  B.set( width/2-curvexmid+xplus, height/2+curveymax+yplus);//
-  C.set( width/2-curvexmid+xplus, height/2+curveymin+yplus);//
-  D.set( width/2-curvexmin+xplus, height/2+yplus);//
-  E.set( width/2+curvexmax+xplus, height/2+yplus);//
-  F.set( width/2+curvexmid+xplus, height/2+curveymax+yplus);//
-  G.set( width/2+curvexmid+xplus, height/2+curveymin+yplus);//
-  H.set( width/2+curvexmin+xplus, height/2+yplus);//
-    
-  // draw the two curves and show the two hands
-  strokeWeight(2);
-  //tStep=tempobar.getPos();
-  
-   
-  pushMatrix();
-  translate(borderSize, -50);    
-  
-  circleStyle();
-  PVector pos1 = curve1.pointAtFraction(tCurve);
-  PVector pos2 = curve2.pointAtFraction(tCurve);
-  float pos1y=0;
-  float pos2y=0;
-  float deltax=0;
-  float deltay=0;
-  
-  
-  tCurve -= tStep;
-  if(tCurve<0) tCurve+=2;
-  
-  if(startornot==true){
-    tStep=2*movespeed/w;//2*movespeed/w=1/30~~0.03333
-  }
+  if(page==0) {
+    pretrain.display();
+    exercise.display();
+    report.display();
+    textAlign(CENTER);
+    lyrics_font = createFont("Arial Bold", 18);
+    textFont(lyrics_font);textSize(50);
+    fill(255, 255, 255,160);
+    text("SING ALONG WITH ME", width/2, height/2-50); 
+  }  
   else{
-    tStep=0;
+    p1.display();
+    e1.display();
+    r1.display();
   }
   
-  if(tCurve>=0.0 && tCurve<1.0 && pos1.x<370){
-    
-    image(lefthand,pos1.x+80*(2-circleport),pos1.y);
-    pos1y=pos1.y-deltax;
-    image(righthand,pos2.x-80*(2-circleport),pos2.y);
-    pos2y=pos2.y+deltay;
+  pageSelector();  
+  while (myPort.available () > 0) { //as long as there is data coming from serial port, read it and store it 
+    myString = myPort.readStringUntil(10);
   }
-  if(tCurve>=1.0 && tCurve<2.0){
-     pos1=curve1.pointAtFraction(2-tCurve);
-     pos2=curve2.pointAtFraction(2-tCurve);
-     
-     image(lefthand,pos1.x+80*(2-circleport),height+2*yplus-pos1.y);
-     pos1y=height+2*yplus-pos1.y;
-     image(righthand,pos2.x-80*(2-circleport),height+2*yplus-pos2.y);
-     pos2y=height+2*yplus-pos2.y;
-  }
-  
-  popMatrix();
+  processInputData(myPort); 
 }
 
+void pageSelector()
+{
+  if (page==0) beginpage();
+  else if (page==1) norpage();
+  else if (page==2) maxpage();
+  else if (page==3) singingpage();
+}
 
 void getf(){
   f = (int)PD.GetFrequency();//
-  println();
   f2midi=note.fre2midi(f);
   //TG.SetFrequency(f);
   //TG.SetLevel(level * 10.0);
@@ -649,15 +431,16 @@ void draw_noteline(){
 
   boolean noteposition=true;
 
-if(width-xline<=10 && upordown==false && page<=2) {
-  page=2;
+  if(width-xline<=10 && upordown==false && page<=2) {
+    page=2;
+  }
 }
 
-for(int i=1;i<=notecount;i++){ 
-  eachnote[i].setNoteColor();
-  eachnote[i].drawEachNote();//i
-}
-
+void drawNoteScore(){
+  for(int i=1;i<=notecount;i++){ 
+    eachnote[i].setNoteColor();
+    eachnote[i].drawEachNote();//i
+  }
 }
 
 int re=0;
@@ -771,6 +554,21 @@ void mousePressed() {
      }else{startornot=false;}     
    }
   }
+  
+  if(pretrain.isInside()) {
+    page=1;
+    pageSelector();
+  }
+  
+  if(exercise.isInside()) {
+    page=2;
+    pageSelector();
+  }
+  
+  if(report.isInside()) {
+    page=3;
+    pageSelector();
+  }
 }
 
 void stop() {
@@ -799,4 +597,18 @@ void clearArrayinterval(){
     arrayinterval[i]=0;
   }
 
+}
+int serialCount = 0;     // A count of how many bytes we receive
+
+//Returns true when valid data is available
+void processInputData(Serial myP) {
+
+ if (myString != null) {  //if the string is not empty, print the following
+
+    /*  Note: the split function used below is not necessary if sending only a single variable. However, it is useful for parsing (separating) messages when
+     reading from multiple inputs in Arduino.
+     */
+    String[] a = split(myString, ' ');  // a new array (called 'a') that stores values into separate cells (separated by commas specified in your Arduino program)
+    //println(a[0]," ",a[1]," ",a[2]," ",a[3]," ",a[4]);    
+ }
 }

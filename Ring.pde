@@ -14,11 +14,12 @@ class Ring {
   
   void grow() {    
       background(diameter/max*80);
-      /*breathword = loadFont("FuturaLT-Light-48.vlw");
+      breathword = loadFont("FuturaLT-Light-48.vlw");
       textFont(breathword,diameter/4.5);
       fill(0,120);
       textAlign(CENTER, CENTER);
-      text("Breath In", 80+(width-100)/2, 50+height/2); */
+      text("Breath In", 80+(width-100)/2, height/2); 
+      
       if (diameter >= max) {
         on =false;
       }   
@@ -28,11 +29,11 @@ class Ring {
   void contract(float speed) {       
       background(diameter/max*80);
       
-      /*breathword = loadFont("FuturaLT-Light-48.vlw");
+      breathword = loadFont("FuturaLT-Light-48.vlw");
       textFont(breathword,diameter/2.5);
       fill(0,120);
       textAlign(CENTER, CENTER);
-      text("Out", 80+(width-100)/2, 50+height/2); */
+      text("Out", 80+(width-100)/2, height/2); 
       
       if (diameter <= min) {
         on =true;

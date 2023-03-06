@@ -124,7 +124,7 @@ class PitchDetectorFFT implements AudioListener {
       for(int i=arrayindex-5;i<arrayindex;i++){
         if(breath[i]==true) breathnum++;
       }
-      println("ave_amplitude=",ave_amplitude," breath=",breathnum/5.0);
+     // println("ave_amplitude=",ave_amplitude," breath=",breathnum/5.0);
       if(breathnum/5.0>0.36 && (f <150||f>1000) && ave_amplitude>5.5) {
         breathornot=true;
         for(int i=arrayindex-5;i<arrayindex;i++){
