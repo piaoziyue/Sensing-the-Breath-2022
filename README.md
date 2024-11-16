@@ -5,6 +5,7 @@ Demo video presentation [here](https://www.youtube.com/watch?v=MiBfqQpaiPQ).
 
 ## Citation
 Please cite our work as:
+```
 @article{Piao2022Sensing,
 	author = {Piao, Ziyue and Xia, Gus},
 	journal = {International Conference on New Interfaces for Musical Expression},
@@ -14,5 +15,6 @@ Please cite our work as:
 	publisher = {},
 	title = {Sensing the {Breath}: A {Multimodal} {Singing} {Tutoring} {Interface} with {Breath} {Guidance}},
 }
+```
 
 p.s.: my first project and the code is messy to check (because I am lazy to make it standarlize now. My next projects have a lot of improvements!) If you have any problem, please email ziyue.piao@mail.mcgill.ca
