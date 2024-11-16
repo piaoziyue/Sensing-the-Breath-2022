@@ -6,14 +6,12 @@ Demo video presentation [here](https://www.youtube.com/watch?v=MiBfqQpaiPQ).
 ## Citation
 Please cite our work as:
 ```
-@article{Piao2022Sensing,
-	author = {Piao, Ziyue and Xia, Gus},
-	journal = {International Conference on New Interfaces for Musical Expression},
-	year = {2022},
-	month = {jun 22},
-	note = {https://nime.pubpub.org/pub/orgf5hrv},
-	publisher = {},
-	title = {Sensing the {Breath}: A {Multimodal} {Singing} {Tutoring} {Interface} with {Breath} {Guidance}},
+@inproceedings{piao2022sensing,
+  title = {Sensing the {Breath}: A {Multimodal} {Singing} {Tutoring} {Interface} with {Breath} {Guidance}},
+  author = {Piao, Ziyue and Xia, Gus},
+  booktitle = {Proceedings of the International Conference on New Interfaces for Musical Expression},
+  year = {2022},
+  url = {https://nime.pubpub.org/pub/orgf5hrv},
 }
 ```
 
